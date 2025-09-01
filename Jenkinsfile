@@ -4,23 +4,38 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the code from your repository
-                git 'https://github.com/NSuram43/Jenkins-Practise.git'
+                git url: 'https://github.com/NSuram43/Jenkins-Practise.git', branch: 'main'
             }
         }
-        stage('Build') {
+
+        stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("my-cypress-tests:latest", "./cypress-typescript")
+                    docker.build('my-cypress-tests:latest', '--platform linux/amd64 ./cypress-typescript')
                 }
             }
         }
-        stage('Run Tests') {
+
+        stage('Run Cypress Tests') {
             steps {
-                script {
-                    docker.image("my-cypress-tests:latest").run("--rm --privileged")
-                }
+                sh 'docker run --rm --ipc=host my-cypress-tests:latest --browser chrome'
             }
+        }
+
+        stage('Cleanup') {
+            steps {
+                sh 'docker rmi my-cypress-tests:latest || true'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline completed'
+            archiveArtifacts artifacts: 'cypress-typescript/cypress/screenshots/**/*,cypress-typescript/cypress/videos/**/*', allowEmptyArchive: true
+        }
+        failure {
+            echo 'Pipeline failed, check logs and artifacts'
         }
     }
 }
