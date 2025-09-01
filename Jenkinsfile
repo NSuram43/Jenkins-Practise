@@ -18,7 +18,7 @@ pipeline {
 
         stage('Run Cypress Tests') {
             steps {
-                sh 'docker run --rm --ipc=host my-cypress-tests:latest --browser chrome'
+                sh 'docker run --rm --ipc=host -e CYPRESS_BASE_URL=https://rahulshettyacademy.com/ my-cypress-tests:latest --browser chrome'
             }
         }
 
